@@ -7,9 +7,23 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
 
   def setup
     I18n.backend = Backend.new
-    I18n.backend.store_translations(:en, :foo => 'foo',
-      :bar => { :baz => 'bar ${foo}' , :boo => { :baz => 'hoo ${bar.baz}'}},
-      :alternate_lookup => '${baz}')
+    I18n.backend.store_translations(:en,
+      :foo => 'foo',
+      :bar => {
+        :baz => 'bar ${foo}',
+        :boo => {
+          :baz => 'hoo ${bar.baz}'
+        }
+      },
+      :alternate_lookup => '${baz}',
+      :number => {
+        :format => {
+          :delimiter => ',',
+          :precision => 3,
+          :significant => false
+        }
+      }
+    )
   end
 
   def teardown
@@ -34,8 +48,11 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
   end
 
   test "should also resolve hash lookups" do
-
     assert_equal I18n.t(:'bar.boo').to_s, '{:baz=>"hoo bar foo"}'
+  end
+
+  test 'handles non-string results from lookup' do
+    assert_equal '{:delimiter=>",", :precision=>3, :significant=>false}', I18n.t(:'number.format', :locale => :en, :default => {}).to_s
   end
 
   test "stores a compiled hash lookup" do

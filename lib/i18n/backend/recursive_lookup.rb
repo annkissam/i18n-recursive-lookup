@@ -9,7 +9,6 @@ module I18n
       protected
 
       def lookup(locale, key, scope = [], options = {})
-
         result = super
 
         return result unless (result.is_a?(String) or result.is_a?(Hash))
@@ -25,28 +24,32 @@ module I18n
 
       #subject is hash or string
       def deep_compile(locale, subject, options)
-        if subject.is_a?(String)
-          compile(locale, subject, options)
-        else
+        if subject.is_a?(Hash)
           subject.each do |key, object|
             subject[key], had_to_compile_result = deep_compile(locale, object, options)
           end
+        else
+          compile(locale, subject, options)
         end
       end
 
       def compile(locale, string, options)
         had_to_compile_result = false
 
-        result = string.split(TOKENIZER).map do |token|
-          embedded_token = token.match(INTERPOLATION_SYNTAX_PATTERN)
+        if string.is_a?(String)
+          result = string.split(TOKENIZER).map do |token|
+            embedded_token = token.match(INTERPOLATION_SYNTAX_PATTERN)
 
-          if embedded_token
-            had_to_compile_result = true
-            handle_interpolation_match(locale, embedded_token, options)
-          else
-            token
-          end
-        end.join
+            if embedded_token
+              had_to_compile_result = true
+              handle_interpolation_match(locale, embedded_token, options)
+            else
+              token
+            end
+          end.join
+        else
+          result = string
+        end
 
         [result, had_to_compile_result]
       end
