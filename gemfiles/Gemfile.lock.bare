@@ -1,3 +1,9 @@
+PATH
+  remote: .
+  specs:
+    i18n-recursive-lookup (0.0.3)
+      i18n
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -5,12 +11,14 @@ GEM
     metaclass (0.0.1)
     mocha (0.13.2)
       metaclass (~> 0.0.1)
+    rake (10.0.4)
     test_declarative (0.0.5)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  i18n
+  i18n-recursive-lookup!
   mocha
+  rake
   test_declarative
