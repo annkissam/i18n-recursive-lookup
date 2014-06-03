@@ -46,7 +46,9 @@ module I18n
             else
               token
             end
-          end.join
+          end
+          
+          result = (result.second && result.second.is_a?(Array)) ? result.second : result.join
         else
           result = string
         end
