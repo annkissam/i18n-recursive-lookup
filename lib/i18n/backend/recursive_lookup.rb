@@ -50,8 +50,12 @@ module I18n
               token
             end
           end
-          
-          result = (result.second && result.second.is_a?(Array)) ? result.second : result.join
+
+          result = (
+            result.second && (
+              result.second.is_a?(Array) || result.second.is_a?(Hash)
+            )
+          ) ? result.second : result.join
         else
           result = string
         end

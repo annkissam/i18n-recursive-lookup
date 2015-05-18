@@ -16,6 +16,11 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
         }
       },
       :alternate_lookup => '${baz}',
+      :hash_lookup => '${hash}',
+      :hash => {
+        one: 'hash',
+        other: 'hashes'
+      },
       :number => {
         :format => {
           :delimiter => ',',
@@ -61,5 +66,20 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
     result = I18n.t(:'bar.boo')
     precompiled_result = original_lookup.call(:en, :'bar.boo')
     assert_equal result, precompiled_result
+  end
+
+  test "correctly returns a hash" do
+    result = I18n.t(:'hash_lookup')
+
+    assert_equal Hash, result.class
+
+    assert_equal({
+      one: 'hash',
+      other: 'hashes'
+    }, result)
+  end
+
+  test "correctly translates a hash reference with count" do
+    assert_equal 'hashes', I18n.t(:'hash_lookup', count: 5)
   end
 end
