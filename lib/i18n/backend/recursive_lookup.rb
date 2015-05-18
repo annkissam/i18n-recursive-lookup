@@ -1,3 +1,6 @@
+require 'active_support'
+require 'active_support/core_ext'
+
 module I18n
   module Backend
     module RecursiveLookup
@@ -26,7 +29,7 @@ module I18n
       def deep_compile(locale, subject, options)
         if subject.is_a?(Hash)
           subject.each do |key, object|
-            subject[key], had_to_compile_result = deep_compile(locale, object, options)
+            subject[key], _had_to_compile_result = deep_compile(locale, object, options)
           end
         else
           compile(locale, subject, options)
