@@ -21,7 +21,7 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
         one: 'hash',
         other: 'hashes'
       },
-      :number => {
+      :number_hash => {
         :format => {
           :delimiter => ',',
           :precision => 3,
@@ -57,7 +57,7 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
   end
 
   test 'handles non-string results from lookup' do
-    assert_equal '{:delimiter=>",", :precision=>3, :significant=>false}', I18n.t(:'number.format', :locale => :en, :default => {}).to_s
+    assert_equal '{:delimiter=>",", :precision=>3, :significant=>false}', I18n.t(:'number_hash.format', :locale => :en, :default => {}).to_s
   end
 
   test "stores a compiled hash lookup" do
