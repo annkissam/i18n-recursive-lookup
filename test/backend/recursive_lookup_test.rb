@@ -16,7 +16,12 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
         }
       },
       :alternate_lookup => '${baz}',
-      :number => {
+      :hash_lookup => '${hash}',
+      :hash => {
+        one: 'hash',
+        other: 'hashes'
+      },
+      :number_hash => {
         :format => {
           :delimiter => ',',
           :precision => 3,
@@ -52,7 +57,7 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
   end
 
   test 'handles non-string results from lookup' do
-    assert_equal '{:delimiter=>",", :precision=>3, :significant=>false}', I18n.t(:'number.format', :locale => :en, :default => {}).to_s
+    assert_equal '{:delimiter=>",", :precision=>3, :significant=>false}', I18n.t(:'number_hash.format', :locale => :en, :default => {}).to_s
   end
 
   test "stores a compiled hash lookup" do
@@ -61,5 +66,20 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
     result = I18n.t(:'bar.boo')
     precompiled_result = original_lookup.call(:en, :'bar.boo')
     assert_equal result, precompiled_result
+  end
+
+  test "correctly returns a hash" do
+    result = I18n.t(:'hash_lookup')
+
+    assert_equal Hash, result.class
+
+    assert_equal({
+      one: 'hash',
+      other: 'hashes'
+    }, result)
+  end
+
+  test "correctly translates a hash reference with count" do
+    assert_equal 'hashes', I18n.t(:'hash_lookup', count: 5)
   end
 end
