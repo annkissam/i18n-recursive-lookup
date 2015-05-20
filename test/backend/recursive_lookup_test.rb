@@ -52,7 +52,7 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
     assert_equal result, precompiled_result
   end
 
-  test "should also resolve hash lookups" do
+  test "resolves hash lookups" do
     assert_equal I18n.t(:'bar.boo').to_s, '{:baz=>"hoo bar foo"}'
   end
 
