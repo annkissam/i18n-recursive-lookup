@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    i18n-recursive-lookup (0.0.4)
+    i18n-recursive-lookup (0.0.5)
       activesupport
       i18n
 
