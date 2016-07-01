@@ -14,6 +14,24 @@ module I18n
       def lookup(locale, key, scope = [], options = {})
         result = super
 
+        unless result
+          normalized_key = I18n.normalize_keys(nil, key, scope)
+          return if normalized_key.size < 2
+
+          # simply strip the last key part, e.g.
+          # `foo.bar.baz` becomes `foo.bar`
+          normalized_key.slice!(-1, 1)
+
+          # look the stripped key up - if this is a reference, it will
+          # get compiled and cached
+          lookup(locale, normalized_key, [], options)
+
+          # then try again to get our result - it will be found now if the
+          # previous `lookup` call compiled a new reference with our key,
+          # otherwise still stay nil
+          result = super
+        end
+
         return result unless (result.is_a?(String) or result.is_a?(Hash))
 
         compiled_result, had_to_compile_result = deep_compile(locale, result, options)

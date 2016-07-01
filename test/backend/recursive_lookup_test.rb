@@ -19,7 +19,11 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
       :hash_lookup => '${hash}',
       :hash => {
         one: 'hash',
-        other: 'hashes'
+        other: 'hashes',
+        deeper: {
+          first: 'First hash',
+          second: 'Second hash'
+        }
       },
       :number_hash => {
         :format => {
@@ -37,6 +41,10 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
 
   test "still returns an existing translation as usual" do
     assert_equal 'foo', I18n.t(:foo)
+  end
+
+  test "still fails for a missing key" do
+    assert_equal 'translation missing: en.missing_key', I18n.t(:'missing_key')
   end
 
   test "does a lookup on an embedded key" do
@@ -75,11 +83,28 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
 
     assert_equal({
       one: 'hash',
-      other: 'hashes'
+      other: 'hashes',
+      deeper: {
+        first: 'First hash',
+        second: 'Second hash'
+      }
     }, result)
   end
 
   test "correctly translates a hash reference with count" do
     assert_equal 'hashes', I18n.t(:'hash_lookup', count: 5)
+  end
+
+  test "correctly translates a hash reference when called directly" do
+    assert_equal 'hashes', I18n.t(:'hash_lookup.other')
+  end
+
+  test "correctly translates a hash reference when called directly even when nested" do
+    assert_equal 'Second hash', I18n.t(:'hash_lookup.deeper.second')
+  end
+
+  test "correctly fails for a hash reference that is not present" do
+    assert_equal 'translation missing: en.hash_lookup.deeper.not_there.really',
+                 I18n.t(:'hash_lookup.deeper.not_there.really')
   end
 end
