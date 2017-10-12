@@ -1,5 +1,6 @@
 require 'active_support'
 require 'active_support/core_ext'
+require 'i18n/error/cyclic_reference_error'
 
 module I18n
   module Backend
@@ -14,27 +15,9 @@ module I18n
       def lookup(locale, key, scope = [], options = {})
         result = super
 
-        unless result
-          normalized_key = I18n.normalize_keys(nil, key, scope)
-          return if normalized_key.size < 2
-
-          # simply strip the last key part, e.g.
-          # `foo.bar.baz` becomes `foo.bar`
-          normalized_key.slice!(-1, 1)
-
-          # look the stripped key up - if this is a reference, it will
-          # get compiled and cached
-          lookup(locale, normalized_key, [], options)
-
-          # then try again to get our result - it will be found now if the
-          # previous `lookup` call compiled a new reference with our key,
-          # otherwise still stay nil
-          result = super
-        end
-
         return result unless (result.is_a?(String) or result.is_a?(Hash))
 
-        compiled_result, had_to_compile_result = deep_compile(locale, result, options)
+        compiled_result, had_to_compile_result = deep_compile(locale, result, options, key)
 
         if had_to_compile_result
           cache_compiled_result(locale, key, compiled_result, scope, options)
@@ -44,17 +27,21 @@ module I18n
       end
 
       #subject is hash or string
-      def deep_compile(locale, subject, options)
+      #initial_key is key needs translate. Need to throw to handle_interpolation_match() method
+      # for detection cyclic references
+      def deep_compile(locale, subject, options, initial_key)
         if subject.is_a?(Hash)
           subject.each do |key, object|
-            subject[key], _had_to_compile_result = deep_compile(locale, object, options)
+            subject[key], _had_to_compile_result = deep_compile(locale, object, options, initial_key)
           end
         else
-          compile(locale, subject, options)
+          compile(locale, subject, options, initial_key)
         end
       end
 
-      def compile(locale, string, options)
+      #initial_key is key needs translate. Need to throw to handle_interpolation_match() method
+      # for detection cyclic references
+      def compile(locale, string, options, initial_key)
         had_to_compile_result = false
 
         if string.is_a?(String)
@@ -63,7 +50,7 @@ module I18n
 
             if embedded_token
               had_to_compile_result = true
-              handle_interpolation_match(locale, embedded_token, options)
+              handle_interpolation_match(locale, embedded_token, options, string, initial_key)
             else
               token
             end
@@ -93,8 +80,20 @@ module I18n
         store_translations(locale, translation_hash, options)
       end
 
-      def handle_interpolation_match(locale, embedded_token, options)
+      #initial_key is the initial key for recursive lookup the nested keys
+      #translated_string is the string from yaml file for +initial_key+
+      #
+      def handle_interpolation_match(locale, embedded_token, options, translated_string, initial_key)
+
+        @keys_chain = {} unless options[:fallback_in_progress] == true
+        @keys_chain ||= {}
+
+
         escaped, pattern, key = embedded_token.values_at(1, 2, 3)
+        @keys_chain[initial_key] = translated_string
+        if @keys_chain.has_key? key
+          raise I18n::CyclicReferenceError.new(@keys_chain)
+        end
         escaped ? pattern : I18n.translate(key, locale: locale)
       end
     end
