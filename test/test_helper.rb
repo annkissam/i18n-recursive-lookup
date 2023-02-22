@@ -4,5 +4,5 @@ require 'i18n'
 require 'i18n/backend/recursive_lookup'
 
 require 'test/unit'
-require 'mocha/setup'
+require 'mocha'
 require 'test_declarative'

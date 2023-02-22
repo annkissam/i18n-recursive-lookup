@@ -8,26 +8,25 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (4.2.1)
-      i18n (~> 0.7)
-      json (~> 1.7, >= 1.7.7)
-      minitest (~> 5.1)
-      thread_safe (~> 0.3, >= 0.3.4)
-      tzinfo (~> 1.1)
-    i18n (0.7.0)
-    json (1.8.2)
-    metaclass (0.0.1)
-    minitest (5.6.1)
-    mocha (0.13.2)
-      metaclass (~> 0.0.1)
-    power_assert (0.2.3)
-    rake (10.0.4)
-    test-unit (3.0.9)
+    activesupport (7.0.4.2)
+      concurrent-ruby (~> 1.0, >= 1.0.2)
+      i18n (>= 1.6, < 2)
+      minitest (>= 5.1)
+      tzinfo (~> 2.0)
+    concurrent-ruby (1.2.0)
+    i18n (1.12.0)
+      concurrent-ruby (~> 1.0)
+    minitest (5.17.0)
+    mocha (2.0.2)
+      ruby2_keywords (>= 0.0.5)
+    power_assert (2.0.3)
+    rake (13.0.6)
+    ruby2_keywords (0.0.5)
+    test-unit (3.5.7)
       power_assert
-    test_declarative (0.0.5)
-    thread_safe (0.3.5)
-    tzinfo (1.2.2)
-      thread_safe (~> 0.1)
+    test_declarative (0.0.6)
+    tzinfo (2.0.6)
+      concurrent-ruby (~> 1.0)
 
 PLATFORMS
   ruby
@@ -38,3 +37,6 @@ DEPENDENCIES
   rake
   test-unit
   test_declarative
+
+BUNDLED WITH
+   2.1.4
