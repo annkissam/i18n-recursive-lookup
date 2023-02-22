@@ -25,6 +25,10 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
           second: 'Second hash'
         }
       },
+      :hash_lookup_no_deeper => {
+        :one => 'hash no deep',
+        :other => 'hashes no deep'
+      },
       :number_hash => {
         :format => {
           :delimiter => ',',
@@ -92,7 +96,7 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
   end
 
   test "correctly translates a hash reference with count" do
-    assert_equal 'hashes', I18n.t(:'hash_lookup', count: 5)
+    assert_equal 'hashes no deep', I18n.t(:hash_lookup_no_deeper, count: 5)
   end
 
   test "correctly translates a hash reference when called directly" do
@@ -106,5 +110,60 @@ class I18nBackendRecursiveLookupTest < Test::Unit::TestCase
   test "correctly fails for a hash reference that is not present" do
     assert_equal 'translation missing: en.hash_lookup.deeper.not_there.really',
                  I18n.t(:'hash_lookup.deeper.not_there.really')
+  end
+end
+
+class I18nBackendRecursiveLookupWithoutCacheTest < Test::Unit::TestCase
+  class Backend < I18n::Backend::Simple
+    include I18n::Backend::RecursiveLookup
+  end
+
+  def setup
+    I18n.backend = Backend.new
+    I18n.backend.disable_interpolation_cache
+    I18n.backend.store_translations(:en,
+      :foo => 'foo',
+      :bar => {
+        :baz => 'bar ${foo}',
+        :boo => {
+          :baz => 'hoo ${bar.baz}'
+        }
+      }
+    )
+  end
+
+  def teardown
+    I18n.backend = nil
+  end
+
+  test "recursive translation of a hash with cache disabled" do
+    assert_equal({
+                   baz: 'bar foo',
+                   boo: {
+                     baz: 'hoo bar foo'
+                   }
+                 }, I18n.t(:bar))
+
+    assert_equal({
+                   baz: 'bar ${foo}',
+                   boo: {
+                     baz: 'hoo ${bar.baz}'
+                   }
+                 }, I18n.backend.send(:translations)[:en][:bar])
+  end
+
+  test "recursive translation of a string with cache disabled" do
+    assert_equal 'bar foo', I18n.t(:'bar.baz')
+    assert_equal 'bar ${foo}', I18n.backend.send(:translations)[:en][:bar][:baz]
+  end
+
+  test "correctly reevaluates translations" do
+    assert_equal 'bar foo', I18n.t(:'bar.baz')
+
+    I18n.backend.store_translations(:en,
+      :foo => 'new_foo',
+    )
+
+    assert_equal 'bar new_foo', I18n.t(:'bar.baz')
   end
 end
