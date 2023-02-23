@@ -9,7 +9,20 @@ module I18n
       TOKENIZER                    = /(\$\$\{[^\}]+\}|\$\{[^\}]+\})/
       INTERPOLATION_SYNTAX_PATTERN = /(\$)?(\$\{([^\}]+)\})/
 
+      def enable_interpolation_cache?
+        @enable_interpolation_cache
+      end
+
+      def disable_interpolation_cache
+        @enable_interpolation_cache = false
+      end
+
       protected
+
+      def initialize
+        super
+        @enable_interpolation_cache = true
+      end
 
       def lookup(locale, key, scope = [], options = {})
         result = super
@@ -36,7 +49,7 @@ module I18n
 
         compiled_result, had_to_compile_result = deep_compile(locale, result, options)
 
-        if had_to_compile_result
+        if enable_interpolation_cache? && had_to_compile_result
           cache_compiled_result(locale, key, compiled_result, scope, options)
         end
 
@@ -45,6 +58,9 @@ module I18n
 
       #subject is hash or string
       def deep_compile(locale, subject, options)
+        # Prevent modifying the original hash if cache is not enabled
+        subject = subject.clone unless enable_interpolation_cache?
+
         if subject.is_a?(Hash)
           subject.each do |key, object|
             subject[key], _had_to_compile_result = deep_compile(locale, object, options)
