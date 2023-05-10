@@ -41,7 +41,7 @@ module I18n
       #subject is hash or string
       def deep_compile(locale, subject, options)
         # Prevent modifying the original hash if cache is not enabled
-        subject = subject.clone unless enable_interpolation_cache?
+        subject = subject&.dup unless enable_interpolation_cache?
 
         if subject.is_a?(Hash)
           subject.each do |key, object|
