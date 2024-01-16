@@ -46,6 +46,7 @@ module I18n
       #subject is hash or string
       def deep_compile(locale, subject, options)
         if subject.is_a?(Hash)
+          subject = subject.deep_dup if subject.frozen?
           subject.each do |key, object|
             subject[key], _had_to_compile_result = deep_compile(locale, object, options)
           end
