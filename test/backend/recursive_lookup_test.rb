@@ -157,3 +157,56 @@ class I18nBackendRecursiveLookupWithoutCacheTest < Test::Unit::TestCase
     assert_equal 'bar new_foo', I18n.t(:'bar.baz')
   end
 end
+
+class I18nBackendRecursiveLookupWithoutCacheAndFallbacksTest < Test::Unit::TestCase
+  class Backend < I18n::Backend::Simple
+    include I18n::Backend::Fallbacks
+    include I18n::Backend::RecursiveLookup
+  end
+
+  def setup
+    I18n.backend = Backend.new
+    I18n.available_locales = %w[en en-cl]
+    I18n.fallbacks = ['en']
+    I18n.default_locale = 'en'
+    I18n.locale = 'en-cl'
+    I18n.backend.disable_interpolation_cache
+    I18n.backend.store_translations('en',
+                                    foo: 'foo',
+                                    bar: {
+                                      baz: 'bar ${foo}',
+                                      boo: {
+                                        baz: 'hoo ${bar.baz}'
+                                      }
+                                    })
+    I18n.backend.store_translations('en-cl',
+                                    foo: 'foo-cl')
+  end
+
+  def teardown
+    I18n.backend = nil
+    I18n.locale = 'en'
+  end
+
+  # When translating I18n.t(:bar) with es-cl, the referenced translation 'foo' needs to be translated to 'foo-cl' and not 'foo'
+  test 'if referenced translation is in the current locale, get that one instead of the current one from the fallback when translating a key that has a hash' do
+    assert_equal({
+                   baz: 'bar foo-cl',
+                   boo: {
+                     baz: 'hoo bar foo-cl'
+                   }
+                 }, I18n.t(:bar))
+
+    assert_equal({
+                   baz: 'bar ${foo}',
+                   boo: {
+                     baz: 'hoo ${bar.baz}'
+                   }
+                 }, I18n.backend.send(:translations)[:en][:bar])
+  end
+
+  test 'if referenced translation is in the current locale, get that one instead of the current one from the fallback when translating a string' do
+    assert_equal 'bar foo-cl', I18n.t(:'bar.baz')
+    assert_equal 'bar ${foo}', I18n.backend.send(:translations)[:en][:bar][:baz]
+  end
+end

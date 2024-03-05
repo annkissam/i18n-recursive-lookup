@@ -61,7 +61,7 @@ module I18n
 
             if embedded_token
               had_to_compile_result = true
-              handle_interpolation_match(locale, embedded_token, options)
+              handle_interpolation_match(embedded_token)
             else
               token
             end
@@ -91,9 +91,11 @@ module I18n
         store_translations(locale, translation_hash, options)
       end
 
-      def handle_interpolation_match(locale, embedded_token, options)
+      def handle_interpolation_match(embedded_token)
         escaped, pattern, key = embedded_token.values_at(1, 2, 3)
-        escaped ? pattern : I18n.translate(key, locale: locale)
+        # don't call translate with the locale passed by the functions because it could be one of the fallbacks
+        # it should always re-enter the lookup process with the current locale setted in I18n.locale
+        escaped ? pattern : I18n.translate(key)
       end
     end
   end
